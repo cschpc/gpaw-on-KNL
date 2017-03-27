@@ -45,6 +45,26 @@ parallelisation.
 Input file: copper-filament/input.py
 
 ### Run parameters
+
+No special command line options or environment variables are needed to run the
+benchmarks on KNLs. One can simply say e.g.
+```
+mpirun -np 256 gpaw-python input.py
+```
+
+If not linked at build time, one may also enable the optimised memory
+allocator (```tbbmalloc```) of Intel TBB by setting environment variable
+```LD_PRELOAD``` to point to the correct libraries, i.e. for example:
+```
+export LD_PRELOAD=$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc_proxy.so.2
+export LD_PRELOAD=$LD_PRELOAD:$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc.so.2
+```
+
+It may also be beneficial to use hugepages together with ```tbbmalloc```:
+```
+export TBB_MALLOC_USE_HUGE_PAGES=1
+```
+
 ### Results
 ### Performance comparison
 
