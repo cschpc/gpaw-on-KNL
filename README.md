@@ -11,7 +11,38 @@ GPAW is licensed under GPL and is freely available at:
   https://gitlab.com/gpaw/gpaw
 
 ## Porting
+
 ### Tuning of memory allocation
+
+Standard memory allocators (such as ```malloc```) lock the memory pool when
+doing an allocation to avoid race conditions. In contrast, Intel TBB scalable
+allocator (```tbbmalloc```) uses thread-local memory pools that avoid
+repeated locking of the global memory pool. In essence, multiple memory
+allocations are replaced with a single memory allocation and some internal
+book keeping.
+
+Linux kernel supports very large memory pages in the form of huge pages. Huge
+pages are a pool of pre-allocated, non-swappable memory that can be used to
+allocate memory in very large chunks (e.g. 2M) instead of the typical default
+of 4k chunks. In general, increased memory consumption is traded for a
+potential gain in performance. In combination with tbbmalloc, huge pages
+offer an attractive (and easily tested) option to possibly streamline memory
+allocation in parallel programs.
+
+Even though GPAW, as a Python program, is not multi-threaded, it seems that
+on KNLs it is clearly beneficial to GPAW's performance to combine tbbmalloc
+with huge pages. **Up to 5% faster run times are observed for GPAW when both
+tbbmalloc and huge pages are in use.** The actual size of the huge pages does
+not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
+
+In order to use tbbmalloc and huge pages, one can e.g. set the following
+environment variables:
+```
+export LD_PRELOAD=$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc_proxy.so.2
+export LD_PRELOAD=$LD_PRELOAD:$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc.so.2
+export TBB_MALLOC_USE_HUGE_PAGES=1
+```
+
 
 ## Performance
 
