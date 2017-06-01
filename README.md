@@ -12,7 +12,7 @@ GPAW is licensed under GPL and is freely available at:
 
 ## Porting
 
-### Platform
+### Hardware
 
 The code was ported to the ARCHER Knights Landing Testing and Development
 Platform by Cray that consists of 12 nodes each with a single 64-core KNL
@@ -20,7 +20,7 @@ processor (Intel Xeon Phi 7210) running at 1.3GHz. Each node had 96GB of
 standard memory in addition to the 16GB of high-bandwidth MCDRAM memory in a
 KNL processor.
 
-### Compilation
+### Building software
 
 Standard version of GPAW should be compiled using the Intel compile
 environment with Intel MKL and Intel MPI, e.g. by following the
@@ -80,6 +80,8 @@ export TBB_MALLOC_USE_HUGE_PAGES=1
 module load craype-hugepages2M
 ```
 
+## Benchmarks
+
 ### Setup
 
 The ARCHER KNL nodes were used in cache mode (*quad_100*) with all of the
@@ -89,33 +91,6 @@ processor and conventional memory.
 The results from the 64-core KNLs (Xeon Phi 7210) were compared to results
 from 12-core Haswell CPUs (Xeon E5-2690v3). A single KNL was compared to a
 full node (two CPUs) to have comparable power consumptions.
-
-## Optimisation
-
-### Tuning of memory allocation
-
-Standard memory allocators (such as `malloc`) lock the memory pool when
-doing an allocation to avoid race conditions. In contrast, Intel TBB scalable
-allocator (`tbbmalloc`) uses thread-local memory pools that avoid
-repeated locking of the global memory pool. In essence, multiple memory
-allocations are replaced with a single memory allocation and some internal
-book keeping.
-
-Linux kernel supports very large memory pages in the form of huge pages. Huge
-pages are a pool of pre-allocated, non-swappable memory that can be used to
-allocate memory in very large chunks (e.g. 2M) instead of the typical default
-of 4k chunks. In general, increased memory consumption is traded for a
-potential gain in performance. In combination with tbbmalloc, huge pages
-offer an attractive (and easily tested) option to possibly streamline memory
-allocation in parallel programs.
-
-Even though GPAW, as a Python program, is not multi-threaded, it seems that
-on KNLs it is clearly beneficial to GPAW's performance to combine tbbmalloc
-with huge pages. **Up to 5% faster run times are observed for GPAW when both
-tbbmalloc and huge pages are in use.** The actual size of the huge pages does
-not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
-
-## Performance
 
 ### Test cases
 
@@ -154,18 +129,36 @@ benchmarks on KNLs. One can simply say e.g.
 mpirun -np 256 gpaw-python input.py
 ```
 
-If not linked at build time, one may also enable the optimised memory
-allocator (```tbbmalloc```) of Intel TBB by setting environment variable
-```LD_PRELOAD``` to point to the correct libraries, i.e. for example:
-```
-export LD_PRELOAD=$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc_proxy.so.2
-export LD_PRELOAD=$LD_PRELOAD:$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc.so.2
-```
+An [example batch job script](./job.sh) for the ARCHER KNL system is also
+available.
 
-It may also be beneficial to use hugepages together with ```tbbmalloc```:
-```
-export TBB_MALLOC_USE_HUGE_PAGES=1
-```
+## Optimisation
+
+### Tuning of memory allocation
+
+Standard memory allocators (such as `malloc`) lock the memory pool when
+doing an allocation to avoid race conditions. In contrast, Intel TBB scalable
+allocator (`tbbmalloc`) uses thread-local memory pools that avoid
+repeated locking of the global memory pool. In essence, multiple memory
+allocations are replaced with a single memory allocation and some internal
+book keeping.
+
+Linux kernel supports very large memory pages in the form of huge pages. Huge
+pages are a pool of pre-allocated, non-swappable memory that can be used to
+allocate memory in very large chunks (e.g. 2M) instead of the typical default
+of 4k chunks. In general, increased memory consumption is traded for a
+potential gain in performance. In combination with tbbmalloc, huge pages
+offer an attractive (and easily tested) option to possibly streamline memory
+allocation in parallel programs.
+
+Even though GPAW, as a Python program, is not multi-threaded, it seems that
+on KNLs it is clearly beneficial to GPAW's performance to combine tbbmalloc
+with huge pages. **Up to 5% faster run times are observed for GPAW when both
+tbbmalloc and huge pages are in use.** The actual size of the huge pages does
+not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
+
+## Performance
+
 
 ### Results
 
