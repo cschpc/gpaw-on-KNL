@@ -23,14 +23,13 @@ KNL processor.
 ### Compilation
 
 Standard version of GPAW should be compiled using the Intel compile
-environment with Intel MKL and Intel MPI, e.g. by following the generic
-installation instructions for GPAW
-(https://wiki.fysik.dtu.dk/gpaw/install.html).
+environment with Intel MKL and Intel MPI, e.g. by following the
+[generic installation instructions](https://wiki.fysik.dtu.dk/gpaw/install.html)
+for GPAW. In this comparison, GPAW version 0.11.0 was used.
 
-In this comparison, GPAW version 0.11.0 was used and the results from the
-64-core KNLs (Xeon Phi 7210) were compared to results from 12-core Haswell
-CPUs (Xeon E5-2690v3). A single KNL was compared to a full node (two CPUs) to
-have comparable power consumptions.
+Example build and customisation scripts (used in the ARCHER KNL system)
+are available at
+[github.com/mlouhivu/build-recipes](https://github.com/mlouhivu/build-recipes/tree/master/gpaw-stack/examples/archer-knl-0.11.0)
 
 #### Python+
 
@@ -80,6 +79,16 @@ export LD_PRELOAD=$LD_PRELOAD:$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc.so.2
 export TBB_MALLOC_USE_HUGE_PAGES=1
 module load craype-hugepages2M
 ```
+
+### Setup
+
+The ARCHER KNL nodes were used in cache mode (*quad_100*) with all of the
+high-bandwidth MCDRAM memory used as an additional cache between the
+processor and conventional memory.
+
+The results from the 64-core KNLs (Xeon Phi 7210) were compared to results
+from 12-core Haswell CPUs (Xeon E5-2690v3). A single KNL was compared to a
+full node (two CPUs) to have comparable power consumptions.
 
 ## Optimisation
 
