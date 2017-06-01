@@ -12,11 +12,82 @@ GPAW is licensed under GPL and is freely available at:
 
 ## Porting
 
+### Platform
+
+The code was ported to the ARCHER Knights Landing Testing and Development
+Platform by Cray that consists of 12 nodes each with a single 64-core KNL
+processor (Intel Xeon Phi 7210) running at 1.3GHz. Each node had 96GB of
+standard memory in addition to the 16GB of high-bandwidth MCDRAM memory in a
+KNL processor.
+
+### Compilation
+
+Standard version of GPAW should be compiled using the Intel compile
+environment with Intel MKL and Intel MPI, e.g. by following the generic
+installation instructions for GPAW
+(https://wiki.fysik.dtu.dk/gpaw/install.html).
+
+In this comparison, GPAW version 0.11.0 was used and the results from the
+64-core KNLs (Xeon Phi 7210) were compared to results from 12-core Haswell
+CPUs (Xeon E5-2690v3). A single KNL was compared to a full node (two CPUs) to
+have comparable power consumptions.
+
+#### Python+
+
+Since ARCHER's KNL system has Sandy Bridge login nodes, one needs to build
+GPAW and it's underlying Python stack in two steps. First, Python and the
+other dependencies of GPAW should be built targeting the Sandy Bridge CPUs.
+
+```
+module swap PrgEnv-cray PrgEnv-intel/6.0.3
+export CC=cc
+export MPICC=cc
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ADD_RPATH=yes
+
+module swap craype-mic-knl craype-sandybridge
+
+# ... install Python etc.
+```
+
+#### GPAW
+
+After Python and the other dependencies are built, one can switch to target
+the KNLs and proceed to build GPAW.
+```
+module swap craype-sandybridge craype-mic-knl
+module load cray-memkind
+
+# ... install GPAW
+```
+
+The compiler wrapper (`cc`) takes care of using the correct compiler options
+for the target architecture. In the case of KNLs, it will add `-xMIC-AVX512`
+to enable the AVX-512 instruction sets supported by KNLs. The module
+`cray-memkind` is also needed to get support for the high-bandwidth memory.
+
+#### TBB & huge pages
+
+To improve performance
+(see [Tuning memory allocation](#tuning-of-memory-allocation) for details),
+one should also link to Intel TBB to benefit from an optimised memory
+allocator (`tbbmalloc`) and use huge pages for memory allocation. This can be
+done at run-time by setting the following environment variables and by loading
+a corresponding module to set up the huge pages:
+```
+export LD_PRELOAD=$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc_proxy.so.2
+export LD_PRELOAD=$LD_PRELOAD:$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc.so.2
+export TBB_MALLOC_USE_HUGE_PAGES=1
+module load craype-hugepages2M
+```
+
+## Optimisation
+
 ### Tuning of memory allocation
 
-Standard memory allocators (such as ```malloc```) lock the memory pool when
+Standard memory allocators (such as `malloc`) lock the memory pool when
 doing an allocation to avoid race conditions. In contrast, Intel TBB scalable
-allocator (```tbbmalloc```) uses thread-local memory pools that avoid
+allocator (`tbbmalloc`) uses thread-local memory pools that avoid
 repeated locking of the global memory pool. In essence, multiple memory
 allocations are replaced with a single memory allocation and some internal
 book keeping.
@@ -34,15 +105,6 @@ on KNLs it is clearly beneficial to GPAW's performance to combine tbbmalloc
 with huge pages. **Up to 5% faster run times are observed for GPAW when both
 tbbmalloc and huge pages are in use.** The actual size of the huge pages does
 not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
-
-In order to use tbbmalloc and huge pages, one can e.g. set the following
-environment variables:
-```
-export LD_PRELOAD=$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc_proxy.so.2
-export LD_PRELOAD=$LD_PRELOAD:$TBBROOT/lib/intel64/gcc4.7/libtbbmalloc.so.2
-export TBB_MALLOC_USE_HUGE_PAGES=1
-```
-
 
 ## Performance
 
