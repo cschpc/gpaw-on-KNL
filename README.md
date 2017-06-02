@@ -181,7 +181,7 @@ tbbmalloc without huge pages (*TBB*) and with 2M, 4M, 8M, or 16M huge pages
 (*TBB + 2M* etc.).
 
 | n | stdlib | TBB   | TBB + 2M | TBB + 4M | TBB + 8M | TBB + 16M |
-| - | ------ | ----- | -------- | -------- | -------- | --------- |
+| - | -----: | ----: | -------: | -------: | -------: | --------: |
 | 1 | 329.2  | 330.0 | 319.9    | 320.8    | 321.1    |           |
 | 2 | 215.5  | 213.2 | 206.6    |          |          |           |
 | 4 |        | 145.5 | 141.3    |          |          |           |
@@ -194,7 +194,7 @@ tbbmalloc without huge pages (*TBB*) and with 2M, 4M, 8M, or 16M huge pages
 (*TBB + 2M* etc.).
 
 | n | stdlib | TBB   | TBB + 2M | TBB + 4M | TBB + 8M |
-| - | ------ | ----- | -------- | -------- | -------- |
+| - | -----: | ----: | -------: | -------: | -------: |
 | 1 | 341.0  | 337.1 | 323.4    | 323.9    | 323.4    |
 | 2 |        | 177.7 | 172.3    | 171.0    | 170.9    |
 | 4 | 133.0  | 130.7 | 127.0    | 127.0    | 127.2    |
@@ -205,6 +205,34 @@ LAPACK (which is the default in Case 1) was tested, but only degrading
 performance was achieved.
 
 ### Performance comparison
+
+Since the size of the huge pages does not affect performance, results for
+runs using tbbmalloc together with 2M huge pages were chosen for a
+comparison with Haswell CPUs (Table 3).
+
+**Table 3**. Comparison of runtimes on Haswell CPU nodes (CPU) and KNLs (KNL)
+for both Case 1 and Case 2. Average runtimes are shown for 1, 2, 4, or 8
+nodes consisting of two CPUs or a single KNL.
+
+|            |     | 1     | 2     | 4     | 8     |
+| ---------- | --- | ----: | ----: | ----: | ----: |
+| **Case 1** | CPU | 253.9 | 136.2 |  80.7 |  55.6 |
+|            | KNL | 319.9 | 206.6 | 141.3 | 101.3 |
+| **Case 2** | CPU | 405.8 | 195.2 |  95.4 |  60.3 |
+|            | KNL | 323.4 | 172.3 | 127.0 |  80.0 |
+
+
+
+As can been seen from Table 3, for Case 1 the performance of a
+KNL is at best 79.4% of that of a Haswell CPU node. In contrast, for Case 2
+the performance of a single KNL is 125.5% of that of a Haswell CPU node. When
+using more KNLs (or nodes), it is clear that KNLs do not scale as well as CPUs
+and thus already with 4 nodes/KNLs also Case 2 is faster on CPUs.
+
+Nevertheless, the results are quite comparable and depending on the system of
+interest KNLs may offer similar (or even better) performance than Haswell
+CPUs already out of the box without any code modifications in GPAW.
+
 
 ```
 #
