@@ -159,8 +159,50 @@ not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
 
 ## Performance
 
+GPAW runtimes were measured using two benchmarks (see [above](#test-cases) for
+details) on 64-core KNLs (Xeon Phi 7210) and 12-core Haswell CPUs (Xeon
+E5-2690v3). Only the runtime for the SCF cycle was used to exclude any
+differences in the initialisation overheads. A single KNL was compared to a
+full node (two CPUs) to have comparable power consumptions.
 
-### Results
+### Effects of TBB and huge pages
+
+Different configurations were tested to find optimal performance on KNLs for
+both benchmarks. Summary of the results for Case 1 are shown in Table 1 and
+for Case 2 in Table 2. As can be seen from the results, the effect of
+switching to TBB for memory allocation is either negligible (Case 1) or only
+minor (Case 2) without the additional benefit of huge pages. If huge pages
+are enabled, performance is increased for both benchmarks regardless of the
+size of the huge pages.
+
+**Table 1**. Average runtime in seconds for Case 1 when using *n* KNLs. Data
+shown for runs using standard memory allocator (*stdlib*) as well as using
+tbbmalloc without huge pages (*TBB*) and with 2M, 4M, 8M, or 16M huge pages
+(*TBB + 2M* etc.).
+
+| n | stdlib | TBB   | TBB + 2M | TBB + 4M | TBB + 8M | TBB + 16M |
+| - | ------ | ----- | -------- | -------- | -------- | --------- |
+| 1 | 329.2  | 330.0 | 319.9    | 320.8    | 321.1    |           |
+| 2 | 215.5  | 213.2 | 206.6    |          |          |           |
+| 4 |        | 145.5 | 141.3    |          |          |           |
+| 8 |        |       | 101.3    | 101.2    | 101.3    | 101.4     |
+
+
+**Table 2**. Average runtime in seconds for Case 2 when using *n* KNLs. Data
+shown for runs using standard memory allocator (*stdlib*) as well as using
+tbbmalloc without huge pages (*TBB*) and with 2M, 4M, 8M, or 16M huge pages
+(*TBB + 2M* etc.).
+
+| n | stdlib | TBB   | TBB + 2M | TBB + 4M | TBB + 8M |
+| - | ------ | ----- | -------- | -------- | -------- |
+| 1 | 341.0  | 337.1 | 323.4    | 323.9    | 323.4    |
+| 2 |        | 177.7 | 172.3    | 171.0    | 170.9    |
+| 4 | 133.0  | 130.7 | 127.0    | 127.0    | 127.2    |
+| 8 |        |  82.2 |  80.0    |  80.0    |  80.2    |
+
+Additionally, for Case 1 the effect of using ScaLAPACK instead of serial
+LAPACK (which is the default in Case 1) was tested, but only degrading
+performance was achieved.
 
 ### Performance comparison
 
