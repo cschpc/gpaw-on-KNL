@@ -209,23 +209,23 @@ performance was achieved.
 Since the size of the huge pages does not affect performance, results for
 runs using tbbmalloc together with 2M huge pages were chosen for a
 comparison with Haswell CPUs (Table 3).
+Please see [runtime-vanilla.data](./runtime-vanilla.data) for more detailed
+results, including comparison to other architectures.
 
-**Table 3**. Comparison of runtimes on Haswell CPU nodes (CPU) and KNLs (KNL)
-for both Case 1 and Case 2. Average runtimes are shown for 1, 2, 4, or 8
-nodes consisting of two CPUs or a single KNL.
+**Table 3**. Comparison of runtimes on Haswell CPU nodes (*CPU*) and KNLs
+(*KNL*) for both *Case 1* and *Case 2*. Average runtimes are shown for 1, 2,
+4, or 8 nodes consisting of two CPUs or a single KNL.
 
 |            |     | 1     | 2     | 4     | 8     |
 | ---------- | --- | ----: | ----: | ----: | ----: |
-| **Case 1** | CPU | 253.9 | 136.2 |  80.7 |  55.6 |
+| **Case 1** | CPU | 242.2 | 148.5 |  81.1 |  55.4 |
 |            | KNL | 319.9 | 206.6 | 141.3 | 101.3 |
-| **Case 2** | CPU | 405.8 | 195.2 |  95.4 |  60.3 |
+| **Case 2** | CPU | 405.0 | 191.5 |  86.9 |  60.5 |
 |            | KNL | 323.4 | 172.3 | 127.0 |  80.0 |
 
-
-
 As can been seen from Table 3, for Case 1 the performance of a
-KNL is at best 79.4% of that of a Haswell CPU node. In contrast, for Case 2
-the performance of a single KNL is 125.5% of that of a Haswell CPU node. When
+KNL is at best 75.7% of that of a Haswell CPU node. In contrast, for Case 2
+the performance of a single KNL is 125.2% of that of a Haswell CPU node. When
 using more KNLs (or nodes), it is clear that KNLs do not scale as well as CPUs
 and thus already with 4 nodes/KNLs also Case 2 is faster on CPUs.
 
@@ -233,81 +233,11 @@ Nevertheless, the results are quite comparable and depending on the system of
 interest KNLs may offer similar (or even better) performance than Haswell
 CPUs already out of the box without any code modifications in GPAW.
 
-
-```
-#
-# GPAW runtimes for the SCF-cycle (in seconds).
-#
-
-# Case 1: Carbon nanotube
-#   A ground state calculation for a 6-6-10 carbon nanotube in vacuum
-#   using serial LAPACK.
-#
-# Case 2: Copper filament
-#   A ground state calculation for a copper filament (2x2x3 FCC lattice)
-#   in vacuum using ScaLAPACK.
-#
-
-# Columns:
-#   n   -- number of CPUs / GPUs / MICs
-#   cpu -- runtime (in seconds) for CPUs
-#          Intel Xeon Haswell (E5-2690v3)
-#   knc -- runtime (in seconds) for KNCs
-#          Intel Xeon Phi 7120P
-#          (host) Intel Xeon Haswell (E5-2680v3)
-#   knl -- runtime (in seconds) for KNLs
-#          Intel Xeon Phi 7210
-#   k40 -- runtime (in seconds) for K40 GPUs
-#          NVIDIA Tesla K40
-#          (host) Intel Xeon Ivy Bridge (E5-2620-v2)
-#   k80 -- runtime (in seconds) for K40 GPUs
-#          NVIDIA Tesla K80
-#          (host) Intel Xeon Haswell (E5-2680v3)
-
-#[ Carbon nanotube (6,6,10) ]
-#: n cpu knc knl k40 k80
-1 517.802 nan 319.925 237.560 249.446
-2 253.896 281.230 206.609 nan nan
-4 136.237 164.901 141.332 nan nan
-8 80.676 102.869 101.327 nan nan
-12 nan 87.047 nan nan nan
-16 55.597 77.004 nan nan nan
-24 nan 68.275 nan nan nan
-32 41.652 63.805 nan nan nan
-64 30.635 nan nan nan nan
-
-#[ Copper filament (223,8) ]
-# Note: the GPU times (k40, k80) are scaled up due to slightly different
-#       run parameters (grid size 0.28 vs. the default 0.22)
-#: n cpu knc knl k40 k80
-1 802.238 nan 323.388 386.770 344.371
-2 405.808 nan 172.313 nan nan
-4 195.167 nan 126.997 nan nan
-8 95.362 102.607 79.952 nan nan
-12 nan nan nan nan nan
-16 60.294 69.441 nan nan nan
-24 nan 53.774625 nan nan nan
-32 33.693 42.829 nan nan nan
-64 19.287 31.695 nan nan nan
-
-
-#
-# Case 2 (copper filament) didn't have enough memory on GPUs using default
-# parameters. Grid size was increased from 0.22 to 0.28 to alleviate this.
-# For the comparison, the results need to be scaled up to account for this
-# using the CPU result as a yardstick (scaling factor q=2.113216). Below
-# are the raw numbers for both CPUs and GPUs.
-#
-#[ Copper filament (223,8 / grid 0.28) ]
-#: n cpu knc knl k40 k80
-1 379.629 nan nan 183.025 162.961
-```
-
 ## Conclusions
 
 GPAW has been shown to achieve similar performance on KNLs as on dual-CPU
 Haswell nodes, but with poorer scaling properties. Depending on the benchmark
-the performance is either slightly worse or better (from 79.4% to 125.5% for
+the performance is either slightly worse or better (from 75.7% to 125.2% for
 a single KNL/node). Unsurprisingly, the higher the computational burden is,
 the better KNL performs and scales when moving to multiple processors.
 
