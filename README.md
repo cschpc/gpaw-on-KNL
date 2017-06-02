@@ -305,3 +305,13 @@ CPUs already out of the box without any code modifications in GPAW.
 
 ## Conclusions
 
+GPAW has been shown to achieve similar performance on KNLs as on dual-CPU
+Haswell nodes, but with poorer scaling properties. Depending on the benchmark
+the performance is either slightly worse or better (from 79.4% to 125.5% for
+a single KNL/node). Unsurprisingly, the higher the computational burden is,
+the better KNL performs and scales when moving to multiple processors.
+
+Based on the two benchmarks tested, it is recommended for optimal performance
+to use KNLs for workloads similar to Case 2 (Copper filament) if one is
+limited to using one or two nodes.
+
