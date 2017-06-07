@@ -162,6 +162,96 @@ with huge pages. **Up to 5% faster run times are observed for GPAW when both
 tbbmalloc and huge pages are in use.** The actual size of the huge pages does
 not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
 
+### Code modifications
+
+#### Improved vectorisation with OpenMP SIMDs
+
+The performance of GPAW on KNLs was profiled using Intel VTune Amplifier
+2017 and potential targets for optimisation efforts were identified. All of
+the potential targets were in the computational kernels written in C.
+
+Two of the most prominent targets (```bmgs_fd_worker()``` in `c/bmgs/fd.c` and
+```bmgs_relax()```in `c/bmgs/relax.c`) both contained triple nested loops with
+single step pointer incrementations to advance the position of the input and
+output arrays. To allow for better vectorisation by the compiler, OpenMP SIMD
+pragmas were added and pointer incrementations was modified to be in larger
+blocks at an upper loop level with explicit indeces at the lower loop level.
+
+```
+diff --git a/c/bmgs/fd.c b/c/bmgs/fd.c
+index f5e1e2318..c05e425f0 100644
+--- a/c/bmgs/fd.c
++++ b/c/bmgs/fd.c
+@@ -36,15 +36,16 @@ void *Z(bmgs_fd_worker)(void *threadarg)
+
+     for (int i1 = 0; i1 < s->n[1]; i1++)
+       {
++#pragma omp simd
+         for (int i2 = 0; i2 < s->n[2]; i2++)
+           {
+             T x = 0.0;
+             for (int c = 0; c < s->ncoefs; c++)
+-              x += aa[s->offsets[c]] * s->coefs[c];
+-            *bb++ = x;
+-            aa++;
++              x += aa[s->offsets[c]+i2] * s->coefs[c];
++            bb[i2] = x;
+           }
+-        aa += s->j[2];
++        bb += s->n[2];
++        aa += s->j[2] + s->n[2];
+       }
+   }
+   return NULL;
+```
+
+Similar code modifications were also done in one of the other potential
+targets (`symmetrize()` in `c/symmetry.c`), which had the same kind of overall
+structure as the previous two, but with only the position of the input array
+being advanced with pointer incrementation. Pointer incrementation was
+completely replaced with array indeces and an OpenMP SIMD pragma was added
+around the outermost loop to once again give the compiler hints on better
+vectorisation.
+
+The full code modifications are available in [omp-simd.diff](./omp-simd.diff).
+
+Intel compiler was confirmed to be able to take advantage of the code
+modifications for better vectorisation and the **performance of GPAW was
+observed to increase on KNLs by up to 18.8%** (see
+[Effects of code modifications](#effects-of-code-modifications) for detailed
+results).
+Alternative versions of the code modifications (e.g. to test indexing at other
+loop levels) were also tried, but with negative or neutral effects.
+None of the other potential targets yielded significant performance
+increases when using the same kind of optimisation strategy.
+
+After the code modifications, the performance of GPAW seems to be mostly
+constrained by a load inbalance that manifests in MPI wait times when doing
+global synchronisation. Further work is needed to improve the load balance
+e.g. by improving the domain decomposition to have a more uniform distribution
+of work between the MPI tasks.
+
+#### Removal of obsolete code
+
+During the code optimisation work, obsolete sections of code were also
+identified in the DIIS step of the RMM-DIIS eigensolver.
+
+On Haswell CPUs the unnecessary code consumes only a small fraction of the
+computing time for Case 1 (roughly 1% when using a single node, but increasing
+with the number of nodes). In contrast, on KNLs the fraction is significantly
+higher at approx. 11% of the computing time. Since this time is wasted on
+unproductive computing, the removal of these code sections seemed a good way
+to not only clean up the code base, but also to improve performance especially
+on KNLs.
+
+Unfortunately, the expected performance increase was not achieved on either
+architecture with or without the above code modifications. It seems that the
+removal of obsolete code sections just exposes more clearly an underlying MPI
+inbalance and shifts the saved time to the next MPI synchronisation threshold.
+
+The full code modifications are available in
+[diis-error.diff](./diis-error.diff).
+
 ## Performance
 
 GPAW runtimes were measured using two benchmarks (see [above](#test-cases) for
