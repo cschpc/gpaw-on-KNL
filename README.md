@@ -213,8 +213,8 @@ Please see [runtime-vanilla.data](./runtime-vanilla.data) for more detailed
 results, including comparison to other architectures.
 
 **Table 3**. Comparison of runtimes on Haswell CPU nodes (*CPU*) and KNLs
-(*KNL*) for both *Case 1* and *Case 2*. Average runtimes are shown for 1, 2,
-4, or 8 nodes consisting of two CPUs or a single KNL.
+(*KNL*) for both *Case 1* and *Case 2*. Average runtimes in seconds are
+shown for 1, 2, 4, or 8 nodes consisting of two CPUs or a single KNL.
 
 |            |     | 1     | 2     | 4     | 8     |
 | ---------- | --- | ----: | ----: | ----: | ----: |
@@ -223,11 +223,23 @@ results, including comparison to other architectures.
 | **Case 2** | CPU | 405.0 | 191.5 |  86.9 |  60.5 |
 |            | KNL | 323.4 | 172.3 | 127.0 |  80.0 |
 
-As can been seen from Table 3, for Case 1 the performance of a
-KNL is at best 75.7% of that of a Haswell CPU node. In contrast, for Case 2
-the performance of a single KNL is 125.2% of that of a Haswell CPU node. When
-using more KNLs (or nodes), it is clear that KNLs do not scale as well as CPUs
-and thus already with 4 nodes/KNLs also Case 2 is faster on CPUs.
+
+**Table 4**. Relative performance of KNLs compared to Haswell CPU nodes
+(*CPU / KNL*) for both *Case 1* and *Case 2*. Runtime on CPUs divided by
+runtime on KNLs shown for 1, 2, 4, or 8 nodes consisting of two CPUs or a
+single KNL.
+
+|            |           | 1     | 2     | 4     | 8     |
+| ---------- | --------- | ----: | ----: | ----: | ----: |
+| **Case 1** | CPU / KNL | 0.757 | 0.719 | 0.574 | 0.547 |
+| **Case 2** | CPU / KNL | 1.252 | 1.111 | 0.684 | 0.756 |
+
+As can been seen from Table 4, for Case 1 the performance of a KNL is at
+best 75.7% of that of a Haswell CPU node. In contrast, for Case 2 the
+performance of a single KNL is 125.2% of that of a Haswell CPU node. When
+using more KNLs (or CPU nodes), it is clear that KNLs do not scale as well
+as CPUs and thus already with 4 nodes/KNLs also Case 2 is faster on CPUs
+(Table 4).
 
 Nevertheless, the results are quite comparable and depending on the system of
 interest KNLs may offer similar (or even better) performance than Haswell
