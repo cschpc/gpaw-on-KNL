@@ -1,0 +1,44 @@
+#
+# GPAW runtimes for the SCF-cycle (in seconds).
+#
+
+# Case 1: Carbon nanotube
+#   A ground state calculation for a 6-6-10 carbon nanotube in vacuum
+#   using serial LAPACK.
+#
+# Case 2: Copper filament
+#   A ground state calculation for a copper filament (2x2x3 FCC lattice)
+#   in vacuum using ScaLAPACK.
+#
+
+# Code modifications (=S):
+#   0  -- no modifications
+#   1  -- OMP SIMD: bmgs/fd.c bmgs/relax.c
+#   1r -- same as 1, but with 'aprun -r 1'
+#   2  -- OMP SIMD: bmgs/fd.c bmgs/relax.c symmetry.c
+#   2r -- same as 2, but with 'aprun -r 1'
+
+# Columns:
+#   n     -- number of CPU nodes / GPUs / MICs
+#   cpu/S -- runtime (in seconds) for CPUs with code modifications S
+#              Intel Xeon Haswell (E5-2690v3), 2x per node
+#   knl/S -- runtime (in seconds) for KNLs with code modifications S
+#              Intel Xeon Phi 7210
+
+#[ Carbon nanotube (6-6-10) ]
+#: n cpu/0 cpu/1 cpu/2 knl/0 knl/1 knl/1r knl/2 knl/2r
+1 242.2 247.3 245.2 319.9 272.6 272.2 269.3 268.5
+2 148.5 138.0 142.5 206.6 180.8 179.2 177.3 175.8
+4 81.1 75.7 75.4 141.3 127.1 125.7 123.2 122.1
+8 55.4 55.5 47.8 101.3 94.9 93.7 91.3 90.1
+16 32.7 41.5 37.3 nan nan nan
+32 32.3 34.9 30.3 nan nan nan
+
+#[ Copper filament (223,8) ]
+#: n cpu/0 cpu/1 cpu/2 knl/0 knl/1 knl/1r knl/2 knl/2r
+1 405.0 408.7 407.2 323.4 279.6 280.9 280.7 281.7
+2 191.5 194.2 194.2 172.3 150.1 149.4 150.0 150.3
+4 86.9 87.3 86.8 127.0 116.3 116.3 116.1 116.3
+8 60.5 63.0 59.3 80.0 74.3 74.1 74.0 73.9
+16 32.3 30.5 29.1 nan nan nan
+32 19.4 20.0 18.4 nan nan nan

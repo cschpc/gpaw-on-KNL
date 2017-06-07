@@ -340,6 +340,55 @@ Nevertheless, the results are quite comparable and depending on the system of
 interest KNLs may offer similar (or even better) performance than Haswell
 CPUs already out of the box without any code modifications in GPAW.
 
+### Effects of code modifications
+
+By adding OpenMP SIMD pragmas and using explicit array indexing instead of
+pointer incrementation in some of the computational kernels (see
+[above](#improved-vectorisation-with-openmp-simds) for details), the compiler
+was able to vectorise the kernels better for KNLs.
+Please see [runtime-optimised.data](./runtime-optimised.data) for more
+detailed results.
+
+**Table 5**. Comparison of KNL runtimes before (*vanilla*) and after
+(*optimised*) code modifications for both *Case 1* and *Case 2*. Average
+runtimes in seconds and the achieved performance increase (*speed-up*) are
+shown for 1, 2, 4, or 8 KNLs.
+
+|            |            | 1       | 2       | 4       | 8       |
+| ---------- | ---------- | ------: | ------: | ------: | ------: |
+| **Case 1** | vanilla    | 319.9   | 206.6   | 141.3   | 101.3   |
+|            | optimised  | 269.3   | 177.3   | 123.2   |  91.3   |
+|            | *speed-up* | *1.188* | *1.165* | *1.147* | *1.110* |
+| **Case 2** | vanilla    | 323.4   | 172.3   | 127.0   |  80.0   |
+|            | optimised  | 280.7   | 150.0   | 116.1   |  74.0   |
+|            | *speed-up* | *1.152* | *1.149* | *1.094* | *1.081* |
+
+
+**Table 6**. Relative performance of KNLs compared to Haswell CPU nodes
+before (*vanilla*) and after (*optimised*) code modifications for both
+*Case 1* and *Case 2*. No code modifications were used on CPUs. Runtime on
+CPUs divided by runtime on KNLs shown for 1, 2, 4, or 8 nodes consisting of
+two CPUs or a single KNL.
+
+|            |           | 1     | 2     | 4     | 8     |
+| ---------- | --------- | ----: | ----: | ----: | ----: |
+| **Case 1** | vanilla   | 0.757 | 0.719 | 0.574 | 0.547 |
+|            | optimised | 0.899 | 0.838 | 0.658 | 0.607 |
+| **Case 2** | vanilla   | 1.252 | 1.111 | 0.684 | 0.756 |
+|            | optimised | 1.443 | 1.277 | 0.748 | 0.818 |
+
+As can be seen from Table 5, on a single KNL the runtime dropped by 50.6s
+to 269.3s for Case 1 and by 42.7s to 280.7s for Case 2. This speed-up gained
+by code optimisation translates to a maximum performance increase of 18.8%
+and 15.2% for Case 1 and Case 2, respectively. Using multiple KNLs decreases
+the relative speed-up, but even with 8 KNLs the performance increase is more
+than 8% even for Case 2.
+
+When looking at the relative performance compared to Haswell CPUs (Table 6),
+the overall picture does not change from earlier conclusions. Slightly better
+performance is achieved on KNLs, but going beyond 2 nodes CPUs offer better
+performance than KNLs on both benchmarks.
+
 ## Conclusions
 
 GPAW has been shown to achieve similar performance on KNLs as on dual-CPU
