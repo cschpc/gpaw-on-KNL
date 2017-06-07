@@ -20,6 +20,11 @@ processor (Intel Xeon Phi 7210) running at 1.3GHz. Each node had 96GB of
 standard memory in addition to the 16GB of high-bandwidth MCDRAM memory in a
 KNL processor.
 
+As a reference for the [performance comparisons](#performance),
+CSC's Sisu supercomputer (Cray XC40) was used. In Sisu, each node has two
+12-core Haswell CPUs (Intel Xeon E5-2690v3) running at 2.6GHz and 64GB of
+standard DDR4 memory.
+
 ### Building software
 
 Standard version of GPAW should be compiled using the Intel compile
