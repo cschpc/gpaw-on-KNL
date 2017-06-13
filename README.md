@@ -403,6 +403,11 @@ the performance is either slightly worse or better (from 75.7% to 125.2% for
 a single KNL/node). Unsurprisingly, the higher the computational burden is,
 the better KNL performs and scales when moving to multiple processors.
 
+Slight performance improvement (up to 18.8%) is achieved on KNLs by using
+OpenMP SIMDs and array indexing on three computational kernels. However, this
+does not change the overall conclusion that KNLs may offer better performance
+than CPUs only when using just a few nodes.
+
 Based on the two benchmarks tested, it is recommended for optimal performance
 to use KNLs for workloads similar to Case 2 (Copper filament) if one is
 limited to using one or two nodes.
