@@ -159,8 +159,10 @@ allocation in parallel programs.
 Even though GPAW, as a Python program, is not multi-threaded, it seems that
 on KNLs it is clearly beneficial to GPAW's performance to combine tbbmalloc
 with huge pages. **Up to 5% faster run times are observed for GPAW when both
-tbbmalloc and huge pages are in use.** The actual size of the huge pages does
-not seem to be significant (tested with 2M, 4M, 8M, and 16M page sizes).
+tbbmalloc and huge pages are in use** (see
+[Effects of TBB and huge pages](#effects-of-tbb-and-huge-pages) for detailed
+results). The actual size of the huge pages does not seem to be significant
+(tested with 2M, 4M, 8M, and 16M page sizes).
 
 ### Code modifications
 
@@ -213,7 +215,9 @@ completely replaced with array indeces and an OpenMP SIMD pragma was added
 around the outermost loop to once again give the compiler hints on better
 vectorisation.
 
-The full code modifications are available in [omp-simd.diff](./omp-simd.diff).
+The [code modifications](./omp-simd.diff) were submitted to the community
+as [Merge Request !215](https://gitlab.com/gpaw/gpaw/merge_requests/215),
+which is currently waiting approval by the code maintainers.
 
 Intel compiler was confirmed to be able to take advantage of the code
 modifications for better vectorisation and the **performance of GPAW was
@@ -249,8 +253,10 @@ architecture with or without the above code modifications. It seems that the
 removal of obsolete code sections just exposes more clearly an underlying MPI
 inbalance and shifts the saved time to the next MPI synchronisation threshold.
 
-The full code modifications are available in
-[diis-error.diff](./diis-error.diff).
+The [code modifications](./diis-error.diff) were submitted to the community
+as [Merge Request !214](https://gitlab.com/gpaw/gpaw/merge_requests/214),
+which was accepted and merged to the main development branch by the code
+maintainers.
 
 ## Performance
 

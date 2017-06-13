@@ -1,0 +1,53 @@
+diff --git a/gpaw/eigensolvers/rmmdiis.py b/gpaw/eigensolvers/rmmdiis.py
+index 7d60553c4..cb6290caf 100644
+--- a/gpaw/eigensolvers/rmmdiis.py
++++ b/gpaw/eigensolvers/rmmdiis.py
+@@ -71,7 +71,6 @@ class RMMDIIS(Eigensolver):
+         errors_x = np.zeros(B)
+         state_done = np.zeros(B, dtype=bool)
+ 
+-        errors_n = np.zeros(wfs.bd.mynbands)
+         # Arrays needed for DIIS step
+         if self.niter > 1:
+             psit_diis_nxG = wfs.empty(B * self.niter, q=kpt.q)
+@@ -89,7 +88,7 @@ class RMMDIIS(Eigensolver):
+                 B = n2 - n1
+                 P_axi = dict((a, P_xi[:B]) for a, P_xi in P_axi.items())
+                 dR_xG = dR_xG[:B]
+-                
++
+             n_x = np.arange(n1, n2)
+             psit_xG = psit_nG[n1:n2]
+ 
+@@ -117,7 +116,6 @@ class RMMDIIS(Eigensolver):
+                         weight = 0.0
+                 errors_x[n - n1] = weight * integrate(R_xG[n - n1],
+                                                       R_xG[n - n1])
+-                errors_n[n] = errors_x[n - n1]
+             comm.sum(errors_x)
+             error += np.sum(errors_x)
+ 
+@@ -299,23 +297,6 @@ class RMMDIIS(Eigensolver):
+                                              P_axi, kpt.eps_n[n_x], R_xG, n_x,
+                                              calculate_change=True)
+                     self.timer.stop('Calculate residuals')
+-                    self.timer.start('Calculate errors')
+-                    errors_new_x = np.zeros(B)
+-                    # errors_x[:] = 0.0
+-                    for n in range(n1, n2):
+-                        if kpt.f_n is None:
+-                            weight = kpt.weight
+-                        else:
+-                            weight = kpt.f_n[n]
+-                        if self.nbands_converge != 'occupied':
+-                            if wfs.bd.global_index(n) < self.nbands_converge:
+-                                weight = kpt.weight
+-                            else:
+-                                weight = 0.0
+-                        errors_new_x[n-n1] += weight * integrate(R_xG[n - n1],
+-                                                                 R_xG[n - n1])
+-                    comm.sum(errors_x)
+-                    self.timer.stop('Calculate errors')
+ 
+             self.timer.stop('DIIS step')
+             # Final trial step

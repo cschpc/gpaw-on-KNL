@@ -1,0 +1,112 @@
+diff --git a/c/bmgs/fd.c b/c/bmgs/fd.c
+index f5e1e2318..c05e425f0 100644
+--- a/c/bmgs/fd.c
++++ b/c/bmgs/fd.c
+@@ -36,15 +36,16 @@ void *Z(bmgs_fd_worker)(void *threadarg)
+ 
+     for (int i1 = 0; i1 < s->n[1]; i1++)
+       {
++#pragma omp simd
+         for (int i2 = 0; i2 < s->n[2]; i2++)
+           {
+             T x = 0.0;
+             for (int c = 0; c < s->ncoefs; c++)
+-              x += aa[s->offsets[c]] * s->coefs[c];
+-            *bb++ = x;
+-            aa++;
++              x += aa[s->offsets[c]+i2] * s->coefs[c];
++            bb[i2] = x;
+           }
+-        aa += s->j[2];
++        bb += s->n[2];
++        aa += s->j[2] + s->n[2];
+       }
+   }
+   return NULL;
+diff --git a/c/bmgs/relax.c b/c/bmgs/relax.c
+index d76697ada..115e1ad1a 100644
+--- a/c/bmgs/relax.c
++++ b/c/bmgs/relax.c
+@@ -23,21 +23,21 @@ if (relax_method == 1)
+ 
+   for (int i0 = 0; i0 < nstep[0]; i0++)
+     {
+-
+       for (int i1 = 0; i1 < nstep[1]; i1++)
+         {
+-
++#pragma omp simd
+           for (int i2 = 0; i2 < nstep[2]; i2++)
+             {
+               double x = 0.0;
+               for (int c = 1; c < s->ncoefs; c++)
+-                x += a[s->offsets[c]] * s->coefs[c];
+-              x = (*src - x) * coef;
+-              *b++ = x;
+-              *a++ = x;
+-              src++;
++                x += a[s->offsets[c] + i2] * s->coefs[c];
++              x = (src[i2] - x) * coef;
++              b[i2] = x;
++              a[i2] = x;
+             }
+-          a += s->j[2];
++          src += nstep[2];
++          b += nstep[2];
++          a += s->j[2] + nstep[2];
+         }
+       a += s->j[1];
+     }
+@@ -54,17 +54,17 @@ else
+     {
+       for (int i1 = 0; i1 < s->n[1]; i1++)
+         {
++#pragma omp simd
+           for (int i2 = 0; i2 < s->n[2]; i2++)
+             {
+               double x = 0.0;
+               for (int c = 1; c < s->ncoefs; c++)
+-                x += a[s->offsets[c]] * s->coefs[c];
+-              temp = (1.0 - w) * *b + w * (*src - x)/s->coefs[0];
+-              *b++ = temp;
+-              a++;
+-              src++;
++                x += a[s->offsets[c] + i2] * s->coefs[c];
++              b[i2] = (1.0 - w) * b[i2] + w * (src[i2] - x)/s->coefs[0];
+             }
+-          a += s->j[2];
++          src += s->n[2];
++          b += s->n[2];
++          a += s->j[2] + s->n[2];
+         }
+       a += s->j[1];
+     }
+diff --git a/c/symmetry.c b/c/symmetry.c
+index de9f36c21..169a50421 100644
+--- a/c/symmetry.c
++++ b/c/symmetry.c
+@@ -29,15 +29,16 @@ PyObject* symmetrize(PyObject *self, PyObject *args)
+ 
+     const double* a_g = (const double*)PyArray_DATA(a_g_obj);
+     double* b_g = (double*)PyArray_DATA(b_g_obj);
++#pragma omp simd
+     for (int g0 = 0; g0 < ng0; g0++)
+-        for (int g1 = 0; g1 < ng1; g1++)
+-	    for (int g2 = 0; g2 < ng2; g2++) {
+-	      int p0 = ((C[0] * g0 + C[3] * g1 + C[6] * g2) % ng0 + ng0) % ng0;
+-	      int p1 = ((C[1] * g0 + C[4] * g1 + C[7] * g2) % ng1 + ng1) % ng1;
+-	      int p2 = ((C[2] * g0 + C[5] * g1 + C[8] * g2) % ng2 + ng2) % ng2;
+-              b_g[(p0 * ng1 + p1) * ng2 + p2] += *a_g++;
+-	    }
+-    
++      for (int g1 = 0; g1 < ng1; g1++)
++        for (int g2 = 0; g2 < ng2; g2++) {
++          int p0 = ((C[0] * g0 + C[3] * g1 + C[6] * g2) % ng0 + ng0) % ng0;
++          int p1 = ((C[1] * g0 + C[4] * g1 + C[7] * g2) % ng1 + ng1) % ng1;
++          int p2 = ((C[2] * g0 + C[5] * g1 + C[8] * g2) % ng2 + ng2) % ng2;
++          b_g[(p0 * ng1 + p1) * ng2 + p2] += a_g[(g0 * ng1 + g1) * ng2 + g2];
++        }
++
+     Py_RETURN_NONE;
+ }
+ 
